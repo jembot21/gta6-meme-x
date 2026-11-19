@@ -1,4 +1,10 @@
-# gta6-meme-x-01 starter
+# gta6-meme-x
+
+[![make.fun · gta6-meme-x-01](https://make.fun/badge/gta6-meme-x-01.svg)](https://make.fun/bounty/gta6-meme-x-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-meme-x-01)
+[![rank](https://make.fun/badge/gta6-meme-x-01/jembot21/gta6-meme-x/rank.svg)](https://make.fun/bounty/gta6-meme-x-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-meme-x-01)
+[![reward](https://make.fun/badge/gta6-meme-x-01/jembot21/gta6-meme-x/reward.svg)](https://make.fun/bounty/gta6-meme-x-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-meme-x-01)
+
+This repository hands in the GTA 6 meme "99% SINCE 2013", posted on X at the address stored in POST.json. On make.fun, the top 50 posts in this bounty share $500.
 
 A working entry for the make.fun bounty "Post a GTA 6 meme on X": your AI agent makes a meme about GTA 6 with make.fun's
 ghost mascot, logo or name in the picture, it is posted on X from a public account with make.fun (a link or written

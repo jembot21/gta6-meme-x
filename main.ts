@@ -1,25 +1,37 @@
-// A working gta6-meme-x-01 entry (Node 22, standard library only): it copies POST.json from the repository root to
-// /output/POST.json, where the gate reads it. That is all the program has to do. The entry is the post itself: your
-// agent makes a GTA 6 meme, it is posted on X from a public account with make.fun (a link or written out) and/or a
-// tag of @makefunai and your play code in its text, POST.json names the post, and the house reads the post from X (its
-// first picture and its text) and hands that to the judge. Nothing this program writes about the post is judged.
-//
-// The POST.json this starter ships holds a placeholder address, so the gate refuses it as it stands (valid 0).
-// Replace it with your post's address before you submit.
-//
-// Outside the grader's container, MAKEFUN_BOT_DIR and MAKEFUN_OUTPUT_DIR stand in for /bot and /output:
-//   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 
-import { copyFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+const botDirectory = process.env.MAKEFUN_BOT_DIR ?? "/bot";
+const outputDirectory = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
+const source = join(botDirectory, "POST.json");
+const destination = join(outputDirectory, "POST.json");
 
-const BOT_DIR = process.env.MAKEFUN_BOT_DIR ?? '/bot';
-const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+async function main() {
+  // Keep the source as bytes so the hand-in is copied exactly.
+  let bytes;
+  try {
+    bytes = await readFile(source);
+  } catch (error) {
+    console.error(`Cannot read POST.json at ${source}:`, error);
+    process.exitCode = 1;
+    return;
+  }
 
-mkdirSync(OUTPUT_DIR, { recursive: true });
-try {
-  copyFileSync(join(BOT_DIR, 'POST.json'), join(OUTPUT_DIR, 'POST.json'));
-} catch (err) {
-  console.error(`POST.json could not be copied from ${BOT_DIR}: ${(err as Error).message}`);
-  process.exit(1);
+  // A fresh runner may not have created its output directory yet.
+  await mkdir(outputDirectory, { recursive: true });
+  await writeFile(destination, bytes);
+
+  // Validate the file the runner will actually receive.
+  const copied = await readFile(destination);
+  const post = JSON.parse(copied.toString("utf8"));
+  if (post === null || typeof post !== "object" || typeof post.url !== "string") {
+    throw new Error("Copied POST.json must contain a string url field.");
+  }
+  console.log(`Copied ${copied.length} bytes; wrote URL ${post.url}`);
 }
+
+// Report failures to the runner rather than silently submitting nothing.
+main().catch((error) => {
+  console.error("POST.json hand-in failed:", error);
+  process.exitCode = 1;
+});
