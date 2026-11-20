@@ -1,37 +1,34 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
-const botDirectory = process.env.MAKEFUN_BOT_DIR ?? "/bot";
-const outputDirectory = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
-const source = join(botDirectory, "POST.json");
-const destination = join(outputDirectory, "POST.json");
+const botDir = process.env.MAKEFUN_BOT_DIR ?? '/bot';
+const outputDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const source = join(botDir, 'POST.json');
+const destination = join(outputDir, 'POST.json');
 
 async function main() {
-  // Keep the source as bytes so the hand-in is copied exactly.
+  // Read before creating output so a missing submission fails clearly.
   let bytes;
   try {
     bytes = await readFile(source);
   } catch (error) {
-    console.error(`Cannot read POST.json at ${source}:`, error);
-    process.exitCode = 1;
-    return;
+    throw new Error(`Cannot read POST.json at ${source}: ${error.message}`);
   }
 
-  // A fresh runner may not have created its output directory yet.
-  await mkdir(outputDirectory, { recursive: true });
+  // Keep the original bytes, including whitespace and the final newline.
+  await mkdir(outputDir, { recursive: true });
   await writeFile(destination, bytes);
 
-  // Validate the file the runner will actually receive.
-  const copied = await readFile(destination);
-  const post = JSON.parse(copied.toString("utf8"));
-  if (post === null || typeof post !== "object" || typeof post.url !== "string") {
-    throw new Error("Copied POST.json must contain a string url field.");
+  // Verify the actual output, rather than only the source we read.
+  const copiedBytes = await readFile(destination);
+  const record = JSON.parse(copiedBytes.toString('utf8'));
+  if (typeof record?.url !== 'string') {
+    throw new Error('Copied POST.json must contain a string "url" field.');
   }
-  console.log(`Copied ${copied.length} bytes; wrote URL ${post.url}`);
+  console.log(`Copied ${copiedBytes.length} bytes; wrote URL ${record.url}`);
 }
 
-// Report failures to the runner rather than silently submitting nothing.
 main().catch((error) => {
-  console.error("POST.json hand-in failed:", error);
+  console.error(`Submission failed: ${error.message}`);
   process.exitCode = 1;
 });
